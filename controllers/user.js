@@ -1,11 +1,31 @@
-const { response } = require('express');
+const { response, request } = require('express');
+const Usuario =  require('../models/usuario')
 const bcryptjs = require('bcryptjs')
 
+const usuariosById = async(req, res = response) =>{
+    const {id} = req.params;
+    const usuario = await Usuario.findById(id);
+  
+        res.json(
+            usuario
+        );
+  
+}
 
+const usuariosGet = async (req, res = response) => {
+    const {limite = 5, desde= 0} = req.query;
+    const query = {estado: true};
+ 
+const [total, usuarios] = await Promise.all([
+    Usuario.countDocuments(query),
+    Usuario.find(query)
+    .skip(Number(desde))
+    .limit(Number(limite))
 
-const usuariosGet = (req, res = response) => {
+])
+
         res.json({
-            msg: 'GET API -- CONTROLADOR'
+            total, usuarios
         });
 }
 
@@ -31,12 +51,27 @@ const usuariosPost = async (req = request, res = response)=>{
     );
 }
 
-const usuariosPUT = (req, res = response) => {
-    const id = req.params.id;
-    res.json({
-        msg: 'put API -- CONTROLADOR',
-        id
-        });
+const usuariosPUT = async(req, res = response) => {
+    const {id }= req.params;
+    const {_id,password, google, ...resto} = req.body;
+
+    //TODO validar contra base de datos
+    if (password){
+        const salt = bcryptjs.genSaltSync();
+        resto.password = bcryptjs.hashSync(password, salt);
+    }
+
+    const usuario = await Usuario.findByIdAndUpdate(id, resto);
+    //console.log(req)
+    res.json(usuario);
+}
+
+const usuariosDelete = async (req, res = response)=>{
+    const {id} = req.params;
+
+    const usuario = await Usuario.findByIdAndUpdate(id, {estado:false});
+
+    res.json(usuario);
 }
 
 
@@ -44,5 +79,7 @@ const usuariosPUT = (req, res = response) => {
 module.exports = {
     usuariosGet,
     usuariosPost,
-    usuariosPUT
+    usuariosPUT,
+    usuariosDelete,
+    usuariosById
 }

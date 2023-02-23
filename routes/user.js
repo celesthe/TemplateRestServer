@@ -1,14 +1,19 @@
 const {Router} = require('express');
 const { check } = require('express-validator');
-const { usuariosGet, usuariosPost, usuariosPUT } = require('../controllers/user');
-const { esRolValido, emailExiste } = require('../helpers/db-validators');
+const { usuariosGet, usuariosPost, usuariosPUT, usuariosDelete,usuariosById } = require('../controllers/user');
+const { esRolValido, emailExiste, existeUsuarioPorId } = require('../helpers/db-validators');
 const {validarCampos} = require('../middlewares/validar-campos');
 
 
 const router = Router();
 
 router.get('/', usuariosGet);
-
+router.get('/:id',[
+  check('id','No es un ID Valido').isMongoId(),
+    check('id').custom(existeUsuarioPorId ),
+    validarCampos
+],
+ usuariosById);
   router.post('/',[
     check('nombre','El nombre es obligatorio').not().isEmpty(),
     check('password','La contraseña debe ser mas de 6 letras').isLength({ min: 6}),
@@ -20,8 +25,18 @@ router.get('/', usuariosGet);
   ]
   , usuariosPost);
 
-  router.put('/:id',usuariosPUT);
+  router.put('/:id',[
+    check('id','No es un ID Valido').isMongoId(),
+    check('id').custom(existeUsuarioPorId ),
+    check('rol').custom(esRolValido ),
+    validarCampos
+  ], usuariosPUT);
 
+  router.delete('/:id',[
+    check('id','No es un ID Valido').isMongoId(),
+    check('id').custom(existeUsuarioPorId ),
+    validarCampos
+  ] ,usuariosDelete)
 
 
 
