@@ -33,6 +33,7 @@ const productoById = async(req, res = response) =>{
 const crearProducto = async (req, res) =>{  
     console.log(req.body); 
     const nombre = req.body.nombre.toUpperCase();
+    console.log(nombre);
     const NuevoProducto = req.body;
 
     const ProductoDb = await Producto.findOne({nombre});
@@ -59,8 +60,13 @@ const crearProducto = async (req, res) =>{
 const productoPUT = async(req, res = response) => {
     const {id }= req.params;
     const productoUpd = req.body;
-
-
+    const nombre = req.body.nombre.toUpperCase();
+    const ProductoDb = await Producto.findOne({nombre});
+    if(ProductoDb){
+        return res.status(400).json({
+            msg: `El producto ${ ProductoDb.nombre }, ya existe`
+        });
+    }
     const producto = await Producto.findByIdAndUpdate(id, productoUpd, { new: true});
     //console.log(req)
     res.json(producto);
